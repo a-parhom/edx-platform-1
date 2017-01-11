@@ -32,22 +32,55 @@ function (VideoPlayer, VideoStorage, i18n) {
         state.initialize(element)
             .done(function () {
                 // On iPhones and iPods native controls are used.
-                if (/iP(hone|od)/i.test(state.isTouch[0])) {
+                /*if (/iP(hone|od)/i.test(state.isTouch[0])) {
+
                     _hideWaitPlaceholder(state);
                     state.el.trigger('initialize', arguments);
 
                     return false;
-                }
+                }*/
 
                 _initializeModules(state, i18n)
                     .done(function () {
                         // On iPad ready state occurs just after start playing.
                         // We hide controls before video starts playing.
-                        if (/iPad|Android/i.test(state.isTouch[0])) {
+                        /*if (/iPad|Android/i.test(state.isTouch[0])) {
                             state.el.on('play', _.once(function() {
                                 state.trigger('videoControl.show', null);
                             }));
-                        } else {
+                        }*/
+
+                        if( (/iPad|Android/i.test(state.isTouch[0])) || (/iP(hone|od)/i.test(state.isTouch[0])) ) {
+                            window.setTimeout(function () {    
+                                var iframe = state.videoPlayer.player.getIframe();
+                                $('#player-cover').css({position: 'absolute', 'z-index': 10000, width: '100%', height: $(iframe).height(), top: $(iframe).position().top});
+                                $('#player-cover').removeClass('is-hidden');
+                                $('#player-cover').on('click', _.once(function() {
+                                    if(!/iP(hone|od)/i.test(state.isTouch[0]))
+                                        state.trigger('videoControl.show', null);
+                                    state.videoPlayer.player.playVideo();
+                                }));
+
+                                window.addEventListener("orientationchange", function() {
+                                    window.setTimeout(function () {
+                                        switch(screen.orientation.angle) {
+                                            case 0:
+                                                $('#player-cover').css({top: $(iframe).position().top, height: $(iframe).height()});
+                                                
+                                                break;
+
+                                            case 90:
+                                                $('#player-cover').css({top: 0, height: $(iframe).height()});
+                                                break;
+                                        }  
+                                    }, 500);               
+                                }, false);
+                            }, state.config.ytTestTimeout);
+
+                            
+                        }
+
+                        else {
                         // On PC show controls immediately.
                             state.trigger('videoControl.show', null);
                         }

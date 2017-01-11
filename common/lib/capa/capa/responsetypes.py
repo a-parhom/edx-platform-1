@@ -1882,12 +1882,17 @@ class CodeResponse(LoncapaResponse):
     human_name = _('Code Input')
     tags = ['coderesponse']
     allowed_inputfields = ['textbox', 'filesubmission', 'matlabinput']
-    max_inputfields = 1
+    # max_inputfields = 1 
+    max_inputfields = 5
     payload = None
     initial_display = None
     url = None
     answer = None
     queue_name = None
+
+    def __init__(self, xml, inputfields, context, system):
+        super(CodeResponse, self).__init__(xml, inputfields, context, system)
+        self.answer_id = self.answer_ids[-1]
 
     def setup_response(self):
         """
@@ -1943,7 +1948,13 @@ class CodeResponse(LoncapaResponse):
         _ = self.capa_system.i18n.ugettext
         try:
             # Note that submission can be a file
-            submission = student_answers[self.answer_id]
+            # Old: submission = student_answers[self.answer_id]
+            if len(self.answer_ids)==1:
+                submission = student_answers[self.answer_id]
+            else:
+                submission = {}
+                for k in self.answer_ids:
+                    submission[k] = student_answers[k]
         except Exception as err:
             log.error(
                 'Error in CodeResponse %s: cannot get student answer for %s;'
@@ -2078,6 +2089,7 @@ class CodeResponse(LoncapaResponse):
     def get_answers(self):
         anshtml = '<span class="code-answer"><pre><code>%s</code></pre></span>' % self.answer
         return {self.answer_id: anshtml}
+        # return {self.answer_ids[-1]: anshtml}
 
     def get_initial_display(self):
         """

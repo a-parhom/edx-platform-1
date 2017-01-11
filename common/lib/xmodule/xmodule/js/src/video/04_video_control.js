@@ -282,6 +282,8 @@ function () {
             .text(text);
 
         this.el.trigger('fullscreen', [this.isFullScreen]);
+
+        $('#player-cover').css({height: $('#player-cover').next('iframe').height(), top: $('#player-cover').next('iframe').position().top});
     }
 
     /**
